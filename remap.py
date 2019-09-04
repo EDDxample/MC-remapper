@@ -13,5 +13,6 @@ def get_mappings(version):
     json_dir = os.getenv('APPDATA') + f'\\.minecraft\\versions\\{version}\\{version}.json'
     with open(json_dir) as f:
         jfile = json.load(f)
+        print(jfile['downloads']['client_mappings']['url'])
 
 if __name__ == "__main__": main()
