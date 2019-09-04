@@ -10,8 +10,8 @@ def get_version():
         return config.split('=')[-1].strip()
 
 def get_mappings(version):
-    json_dir = os.getenv('APPDATA') + f'/.minecraft/versions/{version}/{version}.json'
-    jfile = json.load(json_dir)
-    print(jfile)
+    json_dir = os.getenv('APPDATA') + f'\\.minecraft\\versions\\{version}\\{version}.json'
+    with open(json_dir) as f:
+        jfile = json.load(f)
 
 if __name__ == "__main__": main()
