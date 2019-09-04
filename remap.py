@@ -31,13 +31,19 @@ def download_file(url, out):
 def reformat_mappings():
     out = []
     with open('mappings/client.txt') as f:
-        for line in f.readlines()[1:]:
-            if line.startswith('    '): pass
+        for line in f.readlines():
+            if line.startswith('#'): continue
+            
+            elif line.startswith('    '):
+                if '(' in line:
+                    new_line = 'METHOD'
+                else:
+                    new_line = 'FIELD'
             else:
                 deobf_name, obf_name = line.split(' -> ')
-                new_line = f'CLASS\t{obf_name[:-2]}\t{deobf_name[:-1]}'
+                new_line = f'CLASS\t{obf_name[:-2]}\t{deobf_name}'
                 out.append(new_line)
-    print('\n'.join(out))
+    print('\n'.join(out)) # replace later to new_file.write()
 
 
 
