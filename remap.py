@@ -1,4 +1,4 @@
-import os, json
+import os, json, urllib.request
 
 def main():
     version = get_version()
@@ -10,9 +10,21 @@ def get_version():
         return config.split('=')[-1].strip()
 
 def get_mappings(version):
-    json_dir = os.getenv('APPDATA') + f'\\.minecraft\\versions\\{version}\\{version}.json'
-    with open(json_dir) as f:
+    jdir = os.getenv('APPDATA') + f'\\.minecraft\\versions\\{version}\\{version}.json'
+    with open(jdir) as f:
         jfile = json.load(f)
-        print(jfile['downloads']['client_mappings']['url'])
+        url = jfile['downloads']['client_mappings']['url']
+        
+        print(f'Downloading the mappings for {version}...')
+        download_file(url, 'mappings/client.txt')
+        print('Done!')
+
+def download_file(url, out):
+    urllib.request.urlretrieve(url, out)
+
+
+
+
+
 
 if __name__ == "__main__": main()
