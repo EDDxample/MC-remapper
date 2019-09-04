@@ -13,16 +13,23 @@ def get_version():
 def get_mappings(version):
     jdir = os.getenv('APPDATA') + f'\\.minecraft\\versions\\{version}\\{version}.json'
 
-    if os.path.exists(jdir) and  os.path.isfile(jdir):
-        print(f'Found {version}.json')
+    odir = f'mappings/{version}.mojang_mappings'
+
+    if os.path.exists(odir) and os.path.isfile(odir):
+        print('Skipping mapping download')
         return
+
+    if not os.path.exists(jdir) or not os.path.isfile(jdir):
+        print('{version}.json not found, please run the game at least once before running this script')
+        exit()
+    print(f'Found {version}.json')
 
     with open(jdir) as f:
         jfile = json.load(f)
         url = jfile['downloads']['client_mappings']['url']
 
         print(f'Downloading the mappings for {version}...')
-        download_file(url, 'mappings/client.txt')
+        download_file(url, odir)
         print('Done!')
 
 def download_file(url, out):
