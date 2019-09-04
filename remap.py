@@ -37,6 +37,8 @@ def download_file(url, out):
 
 def reformat_mappings(version):
     out = []
+    print(f'Creating {version}.tiny mappings...')
+
     with open(f'mappings/{version}.mojang_mappings') as f:
 
         current_class = None
@@ -52,7 +54,7 @@ def reformat_mappings(version):
     
     with open(f'mappings/{version}.tiny', 'w') as f:
         f.write('\n'.join(out))
-
+    print('Done!')
 
 def parse_class(line):
     #com.mojang.blaze3d.Blaze3D -> cve:
@@ -110,8 +112,6 @@ def parse_type(string):
     else: out += f'L{string};'
     
     return out
-
-    
 
 
 if __name__ == "__main__": main()
