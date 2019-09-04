@@ -29,15 +29,15 @@ def download_file(url, out):
     urllib.request.urlretrieve(url, out)
 
 def reformat_mappings():
-    out = ''
+    out = []
     with open('mappings/client.txt') as f:
         for line in f.readlines()[1:]:
             if line.startswith('    '): pass
             else:
                 deobf_name, obf_name = line.split(' -> ')
                 new_line = f'CLASS\t{obf_name[:-2]}\t{deobf_name[:-1]}'
-                print(new_line)
-                out.join(new_line)
+                out.append(new_line)
+    print('\n'.join(out))
 
 
 
