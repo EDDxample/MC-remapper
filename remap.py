@@ -3,7 +3,7 @@ import os, json, urllib.request
 def main():
     version = get_version()
     get_mappings(version)
-    reformat_mappings()
+    reformat_mappings(version)
 
 def get_version():
     with open('version.config') as f:
@@ -28,24 +28,83 @@ def get_mappings(version):
 def download_file(url, out):
     urllib.request.urlretrieve(url, out)
 
-def reformat_mappings():
+def reformat_mappings(version):
     out = []
-    with open('mappings/client.txt') as f:
+    with open(f'mappings/{version}.mojang_mappings') as f:
+
+        current_class = None
+
         for line in f.readlines():
             if line.startswith('#'): continue
             
             elif line.startswith('    '):
-                if '(' in line:
-                    new_line = 'METHOD'
-                else:
-                    new_line = 'FIELD'
-            else:
-                deobf_name, obf_name = line.split(' -> ')
-                new_line = f'CLASS\t{obf_name[:-2]}\t{deobf_name}'
-                out.append(new_line)
-    print('\n'.join(out)) # replace later to new_file.write()
+                if '(' in line:  new_line = parse_method(line, current_class)
+                else:            new_line = parse_field(line, current_class)
+            else: current_class, new_line = parse_class(line)
+            out.append(new_line)
+    
+    with open(f'mappings/{version}.tiny', 'w') as f:
+        f.write('\n'.join(out))
 
 
+def parse_class(line):
+    #com.mojang.blaze3d.Blaze3D -> cve:
+    #CLASS	a	net/minecraft/class_1158
+
+    deobf_name, obf_name = line.split(' -> ')
+    obf_name = obf_name[:-2]
+    return obf_name, f'CLASS\t{obf_name}\t{deobf_name}'
+
+def parse_field(line, current_class):
+    #    int source -> b
+    #FIELD	co	Ljava/util/Collection;	b	field_9871
+
+    fieldtype, deobf_name, _, obf_name = line.strip().split(' ')
+    fieldtype = parse_type(fieldtype)
+
+    return f'FIELD\t{current_class}\t{fieldtype}\t{obf_name}\t{deobf_name}'
+
+def parse_method(line, current_class):
+    #    852:865:void teleport(double,double,double,float,float,java.util.Set) -> a
+    #METHOD	wc	(DDDFFLjava/util/Set;)V	a	method_14360
+
+    returntype, temp, _, obf_name = line.strip().split(' ')
+    
+    deobf_name, temp = temp.split('(')
+
+    params = ''
+    for param in temp[:-1].split(','): params += parse_type(param)
+    
+    returntype = parse_type(returntype.split(':')[-1])
+
+    return f'METHOD\t{current_class}\t({params}){returntype}\t{obf_name}\t{deobf_name}'
+
+def parse_type(string):
+    if string == '': return ''
+    mapp = {
+        'byte':'B',
+        'char':'C',
+        'double':'D',
+        'float':'F',
+        'int':'I',
+        'long':'J',
+        'short':'S',
+        'boolean':'Z',
+        'void':'V'
+    }
+    
+    out = ''
+
+    for x in range(string.count('[')): out += '['
+    
+    string = string.replace('[]','')
+
+    if string in mapp: out += mapp[string]
+    else: out += f'L{string};'
+    
+    return out
+
+    
 
 
 if __name__ == "__main__": main()
