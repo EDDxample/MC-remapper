@@ -1,9 +1,12 @@
-import os, json, urllib.request
+
+
+import os, json, urllib.request, subprocess as cmd
 
 def main():
     version = get_version()
     get_mappings(version)
     reformat_mappings(version)
+    remap_jar(version)
 
 def get_version():
     with open('version.config') as f:
@@ -36,8 +39,10 @@ def download_file(url, out):
     urllib.request.urlretrieve(url, out)
 
 def reformat_mappings(version):
-    out = []
+    out = ['v1\tofficial\tnamed']
     print(f'Creating {version}.tiny mappings...')
+
+    counter = [0,0,0] # M,F,C
 
     with open(f'mappings/{version}.mojang_mappings') as f:
 
@@ -47,11 +52,15 @@ def reformat_mappings(version):
             if line.startswith('#'): continue
             
             elif line.startswith('    '):
-                if '(' in line:  new_line = parse_method(line, current_class)
-                else:            new_line = parse_field(line, current_class)
-            else: current_class, new_line = parse_class(line)
+                if '(' in line:  new_line = parse_method(line, current_class) ; counter[0] += 1
+                else:            new_line = parse_field(line, current_class)  ; counter[1] += 1
+            else: current_class, new_line = parse_class(line)                 ; counter[2] += 1
             out.append(new_line)
     
+    out.append(f'# NAMED-COUNTER method {counter[0]}')
+    out.append(f'# NAMED-COUNTER field {counter[1]}')
+    out.append(f'# NAMED-COUNTER class {counter[2]}')
+
     with open(f'mappings/{version}.tiny', 'w') as f:
         f.write('\n'.join(out))
     print('Done!')
@@ -112,6 +121,13 @@ def parse_type(string):
     else: out += f'L{string};'
     
     return out
+
+def remap_jar(version):
+    jardir = os.getenv('APPDATA') + f'\\.minecraft\\versions\\{version}\\{version}.jar'
+    outdir = f'output/{version}-remapped.jar'
+    mapdir = f'mappings/{version}.tiny'
+
+    cmd.run(['java','-jar','bin/tiny-remapper-0.1.0.9-fat.jar',jardir,outdir,mapdir,'official','named', '--ignoreconflicts'])
 
 
 if __name__ == "__main__": main()
