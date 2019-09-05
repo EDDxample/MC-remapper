@@ -49,6 +49,9 @@ def reformat_mappings(version):
         current_class = None
 
         for line in f.readlines():
+            
+            line = line.replace('.' ,'/')
+
             if line.startswith('#'): continue
             
             elif line.startswith('    '):
